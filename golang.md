@@ -1,1 +1,453 @@
-dadadadadasda
+defer 的执行顺序是后进先出
+
+短变量只能在函数内部使用
+
+## 数据结构
+
+### 数组
+
+数组是值类型，想要改变数组的值，要传指针
+
+长度是类型的组成部分
+
+### 切片slice
+
+切片在make出来的时候会有底层数组，创建切片的时候会动态分配底层数组的长度，对切片进行追加的时候，超过的切片的容量cap，也会进行底层数组重新分配，策略一般为翻倍
+
+### map
+
+总结来说，Go语言中map的底层逻辑实现是基于哈希表，使用哈希函数将键值对映射到对应的存储桶中，并通过链表处理哈希冲突。在插入和查找操作时，根据哈希值找到存储桶，并在链表中执行相应的操作。当负载因子超过阈值时，会触发扩容操作。这样，map在平均情况下具有O(1)的插入、查找和删除操作的时间复杂度。
+
+make和new
+
+new(T) 会为 T 类型的新值分配已置零的内存空间，并返回地址（指针），即类型为 `*T`的值。换句话说就是，返回一个指针，该指针指向新分配的、类型为 T 的零值。适用于值类型，如数组、结构体等。
+
+make(T,args) 返回初始化之后的 T 类型的值，这个值并不是 T 类型的零值，也不是指针 `*T`，是经过初始化之后的 T 的引用。make() 只适用于 slice、map 和 channel.
+
+#### rwmap
+
+一个map结构，一个rwmutex锁，读写锁，读不受限制，在写入的时候，必须等所有的锁释放
+
+#### syncmap
+
+开箱即用的带锁的map，互斥锁
+
+## 网络
+
+从输入网址，到页面显示，那些过程
+
+### tcp连接
+
+三次握手，四次挥手
+
+1. 建立连接：客户端发送一个连接请求报文段（SYN）到服务器。服务器收到请求后，发送一个确认报文段（SYN-ACK）给客户端。客户端再发送一个确认报文段（ACK）给服务器，建立连接。
+2. 数据传输：建立连接后，客户端和服务器可以通过TCP连接进行数据的传输。数据被划分成小的数据块（数据段），每个数据段带有序号。发送方将数据段发送给接收方，并等待接收方发送确认信息，表示已成功接收。
+3. 断开连接：当数据传输完毕或者一方需要断开连接时，会发送一个断开连接请求报文段（FIN）给对方。对方收到请求后，会发送一个确认报文段（ACK）作为确认。然后对方也发送一个断开连接请求报文段（FIN）给发起断开的一方，发起断开的一方发送一个确认报文段（ACK）作为确认。这样，两端都确认断开连接，完成断开连接的过程。
+
+### http连接
+
+#### get
+
+#### post
+
+```go
+//client := http.Client{Timeout: 2 * time.Minute}
+//loginreq := puppy_protocol.LoginReq{Account: "yry", Pwd: "5db603f600bc9e64877f88576c8f900c"}
+//logincontent, err := json.Marshal(loginreq)
+//if err != nil {
+// fmt.Println(err.Error())
+// return
+//}
+////url := "http://a2generic.api.atm.run:1050"
+//url := "http://172.16.16.122:1223"
+//reader := bytes.NewReader(logincontent)
+//resp, err := client.Post(url+"/api/user/login", "application/json", reader)
+//if err != nil {
+// fmt.Println(err.Error())
+//}
+//body, err := ioutil.ReadAll(resp.Body)
+//if err != nil {
+// fmt.Println("读取响应失败：", err)
+// return
+//}
+//// 打印响应内容
+//fmt.Println(string(body))
+//reader1 := bytes.NewReader(body)
+//// 使用 reader 进行后续操作
+//// 例如：解析为结构体
+//var loginResp puppy_protocol.RespGeneral
+//err = json.NewDecoder(reader1).Decode(&loginResp)
+//if err != nil {
+// fmt.Println(err.Error())
+// return
+//}
+//
+//data := loginResp.Data.(map[string]interface{})
+//token := data["token"].(string)
+//fmt.Println(token)
+//timeRange := [2]int64{1694016000, 1694016000 + 86400}
+//server := []int32{1005}
+//channel := make([]string, 0)
+//lossdataReq := &puppy_protocol.ReqCheckLoss{Time: timeRange, Servers: server, Channels: channel}
+//lossdataContent, err := json.Marshal(lossdataReq)
+//if err != nil {
+// fmt.Println(err)
+//}
+//reader = bytes.NewReader(lossdataContent)
+//req, err := http.NewRequest("POST", url+"/api/analysis/lvlost", reader)
+//if err != nil {
+// fmt.Println(err)
+// return
+//}
+//req.Header.Set("Authorization", token)
+//resp, err = client.Do(req)
+//if err != nil {
+// fmt.Println(err.Error())
+//}
+//body, err = ioutil.ReadAll(resp.Body)
+//if err != nil {
+// fmt.Println("读取响应失败：", err)
+// return
+//}
+//// 打印响应内容
+//fmt.Println(string(body))
+//reader1 = bytes.NewReader(body)
+//// 使用 reader 进行后续操作
+//// 例如：解析为结构体
+//var lossdataResp puppy_protocol.RespGeneral
+//err = json.NewDecoder(reader1).Decode(&lossdataResp)
+//if err != nil {
+// fmt.Println(err.Error())
+// return
+//}
+//
+//data = lossdataResp.Data.(map[string]interface{})
+//losslist := data["days"].(map[string]interface{})
+//fmt.Println(losslist)
+//return
+```
+
+#### session
+
+超时协议进行功能分割，加状态锁（全局变量） 待定
+
+项目开发，网关，外网访问
+
+## DB
+
+inno索引结构    B+树
+
+### sql
+
+mysql -u name -p 连接
+
+select * from
+
+update from where set
+
+delete from where
+
+
+
+where本质是过滤
+
+having 可以使用聚合函数作为筛选条件
+
+外连接，内连接
+
+外连接保留原来的数据，左外连接保留左侧，右外保留右侧
+
+内连接取两表公共数据
+
+limit对group无效？
+
+第n高，窗口函数
+
+.sql.gz
+
+1. 打开终端窗口，并定位到要保存文件的目录。
+
+2. 使用wget命令下载.sql.gz文件，例如：
+
+   ```
+   Copy Codewget http://example.com/file.sql.gz
+   ```
+
+   将URL替换为实际的文件URL。
+
+3. 使用gunzip命令对文件进行解压缩，例如：
+
+   ```
+   Copy Codegunzip file.sql.gz
+   ```
+
+   将"file.sql.gz"替换为你下载的实际文件名。
+
+4. 解压缩后会得到一个.sql文件，使用适当的工具（如MySQL命令行工具或其他数据库管理工具）来读取和获取数据。例如，如果你使用MySQL：
+
+   ```
+   Copy Codemysql -u <用户名> -p <数据库名> < file.sql
+   ```
+
+   将"<用户名>"替换为你的MySQL用户名，"<数据库名>"替换为要导入数据的目标数据库名。
+
+   这将执行.sql文件中的SQL语句，并将数据导入到指定的数据库中。
+
+解压缩之后导入mysql，建立连接，访问数据
+
+#### 窗口函数
+
+用于重复执行某一段sql
+
+order by 列名，排序，默认升序，desc降序
+
+limit x,y限制从x+1开始查询（忽略x条记录），查询y条记录
+
+offset忽略
+
+limit中的offset过大导致的性能问题
+
+in 某一列
+
+### xorm
+
+get单条数据
+
+【】*struct
+
+find(&struct)多条数据
+
+## nginx
+
+```
+nginx -t -c /path/to/nginx.conf
+```
+
+查看nginx的位置
+
+nginx -v 版本
+
+运行nginx，master主进程，读取并检验配置文件，worker子进程来接受响应
+
+多进程启动
+
+修改配置文件之后进行reload，子进程关闭外部访问，余留一段时间处理当前的请求，处理完毕之后杀死进程
+
+### conf 配置文件
+
+#### worker_processes   子进程数目 
+
+#### worker_conneticon 
+
+一个进程可以创造多少个连接，默认1024
+
+#### http
+
+include 引用配置文件
+
+#### mime.types 
+
+类型，在协议头中告诉客户端，返回的文件是什么类型的
+
+某文件需要用某种类型返回，在mime.types里面添加
+
+default_type ￥
+
+默认类型
+
+#### sendfile 
+
+0拷贝，响应过程 
+
+关闭sendfile,nginx向内存当中读取目标文件，再发送给网络接口缓存，网络接口缓存返回响应
+
+开启，nginx发送sendfile信号给网络接口，网络接口去内存当中读取文件，减少了文件的拷贝次数
+
+#### keepalive_timeout 
+
+超时，tcp长连接，代理websocket
+
+#### upstream
+
+#### server 一个虚拟主机 vhost
+
+listen 一个主机监听的端口号
+
+server_name localhost 域名、主机名（必须可以被解析）
+
+##### location 
+
+url查到。 域名之后跟的子目录
+
+## docker
+
+环境镜像
+
+docker
+
+容器，将运行环境和项目，创建一个镜像运行在后台当中
+
+和本地完全相同的环境，
+
+### dockerfile
+
+
+
+## k8s
+
+## 算法
+
+### dfs
+
+前序 中左右
+
+中序 左中右
+
+### 二叉搜索树
+
+根节点的值大于左子树所有节点的值，小于右子树所有节点的值，左子树和右子树同样遵循规则
+
+平衡二叉树
+
+
+
+### 回溯
+
+记录当前位置，找到回溯的临界判断条件，提前剪枝
+
+```
+dfs(当前条件，目标条件){
+//临界判断，一般判断边界情况
+//判断此情况是否满足条件，满足当前的部分情况，继续dfs，已经不满足，提前结束检索，剪枝
+}
+```
+
+### 排序
+
+冒泡
+
+两两关键字，交换，知道没有反序的记录为止
+
+优化：上一轮没有产生交换，跳过当前轮
+
+插入排序
+
+直接插入
+
+希尔排序
+
+先分组，再进行插入排序
+
+堆排序
+
+没有要求左右孩子节点的值的大小关系
+
+升序 大顶堆：每一个节点的值，都大于等于他的左右子节点的值
+
+降序 小顶堆：
+
+快速排序
+
+### 搜索
+
+## go模块
+
+位运算符
+
+|   运算符 或 
+
+进制转换
+
+linux 文件权限
+
+
+
+### csv
+
+文件读取
+
+```go
+//数据写入到csv文件
+t1 := time.Now().UnixNano()
+//首行
+var titles string
+titles = "等级, 0907, 0908, 留存百分比\n"
+
+var stringBuilder strings.Builder
+stringBuilder.WriteString(titles)
+
+var i int
+for i = 0; i < len(datalist); i++ {
+   dataString := fmt.Sprintf("%d,%d,%d,%s\n", datalist[i].Lv, datalist[i].num1, datalist[i].num2, datalist[i].percent)
+   stringBuilder.WriteString(dataString)
+}
+filename := "./test.csv"
+file, _ := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, os.ModeAppend|os.ModePerm)
+dataString := stringBuilder.String()
+file.WriteString(dataString)
+file.Close()
+
+t2 := time.Now().UnixNano()
+t := t2 - t1
+fmt.Printf("writeToCsv总共%d条数据，总耗时%d毫秒\n", i, t/1000000)
+```
+
+前端返回
+
+```go
+buf := &bytes.Buffer{}
+
+writer := csv.NewWriter(buf)
+writer.Write([]string{
+   "玩家Id", "账号", "昵称", "区服", "等级", "战力", "是否在线", "封号状态", "总充值", "光元", "曾用名", "注册区服", "注册时间", "最后登录时间", "最后登出时间",
+})
+for _, row := range dataList {
+   writer.Write([]string{
+      fmt.Sprintf("%d", row.Uid),
+      row.Account,
+      row.NickName,
+      fmt.Sprintf("%d", row.ServerId),
+      row.ServerName,
+      fmt.Sprintf("%d", row.Lv),
+      fmt.Sprintf("%d", row.Power),
+      fmt.Sprintf("%d", row.State),
+      fmt.Sprintf("%d", row.Banned),
+      fmt.Sprintf("%d", row.AllRecharge),
+      fmt.Sprintf("%d", row.Token),
+      row.OldNick,
+      time.Unix(row.RegisterTime, 0).String(),
+      time.Unix(row.LastLogin, 0).String(),
+      time.Unix(row.LastLogout, 0).String(),
+   })
+}
+
+// 3. 刷新Writer对象，将缓冲区中的数据写入到输出流中
+writer.Flush()
+
+// 4. 设置响应头部信息，指定返回的内容类型为CSV文件
+c.Header("Content-Description", "File Transfer")
+c.Header("Content-Disposition", "attachment; filename=playerInfo.csv")
+c.Data(http.StatusOK, "text/csv", buf.Bytes())
+```
+
+### 排序
+
+```go
+func lessFn(objs []*testdata, i, j int) bool {
+	return objs[i].Lv < objs[j].Lv
+}
+sort.Slice(datalist, func(i, j int) bool {
+   return lessFn(datalist, i, j)
+})
+```
+
+### 百分比
+
+```go
+func DimalToPercentage(decimal float64) (string, error) {
+   percentage := decimal * 100
+   percentageStr := strconv.FormatFloat(percentage, 'f', 2, 64) + "%"
+   return percentageStr, nil
+}
+```
+
