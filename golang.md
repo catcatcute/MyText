@@ -137,7 +137,86 @@ client := http.Client{Timeout: 2 * time.Minute}
 
 项目开发，网关，外网访问
 
+## linux
+
+### 文件权限
+
+rwxrwxrwx 9位
+
+r 读取权限  w写入权限  x执行权限
+
+前三位，文件所有者owner，创建文件的用户
+
+中间三位，所属组
+
+后三位，其他人
+
+## 设计模式
+
+### 单例
+
+#### 饿汉
+
+静态变量，声明时创建，直接new出来，或者在init里面初始化，在程序运行期间永久存在，当对象过大时会有内存浪费
+
+#### 懒汉
+
+在获取这个对应的对象的时候才会被创建，且只会创建一次
+
+考虑线程安全
+
+多线程的情况下，每个线程抢占同一个资源，可能会造成同一个对象被多次创建的情况，破坏单例模式
+
+加锁
+
+在初始化之前上锁，保证每次只有一下线程操作对象，解决并发问题，但是效率较低
+
+优化
+
+双重检查锁，只有在对象没有被初始化的时候，才需要进行上锁和解锁
+
+```go
+type singleton struct {
+ 
+}
+
+var instance *singleton
+var lock sync.Mutex
+
+func GetInstance() *singleton {
+ if instance == nil{
+  lock.Lock()
+  if instance == nil{
+   instance = new(singleton)
+  }
+  lock.Unlock()
+ }
+ return instance
+}
+```
+
+原子操作
+
+sync.once  在程序运行的过程中，只运行一次回调函数
+
+```go
+type singleton struct {
+ 
+}
+
+var instance *singleton
+var once sync.Once
+func GetInstance() *singleton {
+ once.Do(func() {
+  instance = new(singleton)
+ })
+ return instance
+}
+```
+
 ## DB
+
+### 索引
 
 inno索引结构    B+树
 
@@ -365,7 +444,17 @@ dfs(当前条件，目标条件){
 
 linux 文件权限
 
+### 垃圾回收
 
+c，c++手动
+
+python，java，go自动
+
+垃圾回收主要针对堆上的内存
+
+堆上存放
+
+栈存放函数上的局部变量
 
 ### csv
 
