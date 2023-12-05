@@ -41,16 +41,34 @@ make(T,args) 返回初始化之后的 T 类型的值，这个值并不是 T 类�
 
 #### 三次握手
 
+客户端-服务器-客户端
+
 1. 建立连接：客户端发送一个连接请求报文段（SYN）到服务器。服务器收到请求后，发送一个确认报文段（SYN-ACK）给客户端。客户端再发送一个确认报文段（ACK）给服务器，建立连接。
 2. 数据传输：建立连接后，客户端和服务器可以通过TCP连接进行数据的传输。数据被划分成小的数据块（数据段），每个数据段带有序号。发送方将数据段发送给接收方，并等待接收方发送确认信息，表示已成功接收。
 3. 断开连接：当数据传输完毕或者一方需要断开连接时，会发送一个断开连接请求报文段（FIN）给对方。对方收到请求后，会发送一个确认报文段（ACK）作为确认。然后对方也发送一个断开连接请求报文段（FIN）给发起断开的一方，发起断开的一方发送一个确认报文段（ACK）作为确认。这样，两端都确认断开连接，完成断开连接的过程。
    
 #### 四次挥手
-1. 
+
+双向连接都要断开，客户端-服务端-服务端-客户端
 
 ### http连接
 
 #### get
+
+```go
+url := "http://api" 
+request, err := http.NewRequest(http.MethodGet, url, bytes.NewReader([]byte{}))
+client := http.Client{Timeout: 2 * time.Minute}
+resp1, err := client.Do(request)
+respMain, err := ioutil.ReadAll(resp1.Body)
+if err != nil {
+    log.Println(err.Error())
+    resp.SetGeneral(true, 3, err.Error())
+    return
+}
+```
+
+
 
 #### post
 
@@ -408,21 +426,21 @@ dfs(当前条件，目标条件){
 
 ### 排序
 
-冒泡
+#### 冒泡
 
 两两关键字，交换，知道没有反序的记录为止
 
 优化：上一轮没有产生交换，跳过当前轮
 
-插入排序
+#### 插入排序
 
 直接插入
 
-希尔排序
+#### 希尔排序
 
 先分组，再进行插入排序
 
-堆排序
+#### 堆排序
 
 没有要求左右孩子节点的值的大小关系
 
@@ -430,9 +448,17 @@ dfs(当前条件，目标条件){
 
 降序 小顶堆：
 
-快速排序
+#### 快速排序
+
+左右游标，交换，左右分割，再次重复，直到元素为1
 
 ### 搜索
+
+二分
+
+### 贪心
+
+### dp
 
 ## go模块
 
@@ -442,7 +468,21 @@ dfs(当前条件，目标条件){
 
 进制转换
 
-linux 文件权限
+### 函数上锁
+
+```go
+var mutex int32
+if !atomic.CompareAndSwapInt32(&ResetMutex, 0, 1) {
+	log.Println("ResetServerOpenTime reset fail")
+	resp.SetGeneral(false, 1, "busy")
+	return
+}
+defer func(){
+    atomic.StoreInt32(&ResetMutex, 0)
+}
+```
+
+
 
 ### 垃圾回收
 
@@ -452,9 +492,15 @@ python，java，go自动
 
 垃圾回收主要针对堆上的内存
 
-堆上存放
+堆内存是程序共享的内存，需要通过gc回收
 
-栈存放函数上的局部变量
+栈是线程的专用内存，存放函数中的局部变量及调用栈，执行完之后编译器可以直接释放
+
+内存管理组件，分为赋值器Mutator和回收器Collector
+
+赋值器本质上是指用户态的代码，为对象在堆上申请内存
+
+垃圾回收器负责回收堆上的内存空间
 
 ### csv
 
@@ -545,3 +591,10 @@ func DimalToPercentage(decimal float64) (string, error) {
 }
 ```
 
+### 定时任务
+
+corn时间轮
+
+正式实现，每个定时任务单独开协程，设置定时器
+
+time.newticker  设置定时
