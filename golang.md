@@ -1,37 +1,4 @@
-defer 的执行顺序是后进先出
 
-短变量只能在函数内部使用
-
-## 数据结构
-
-### 数组
-
-
-数组是值类型，想要改变数组的值，要传指针
-
-长度是类型的组成部分
-
-### 切片slice
-
-切片在make出来的时候会有底层数组，创建切片的时候会动态分配底层数组的长度，对切片进行追加的时候，超过的切片的容量cap，也会进行底层数组重新分配，策略一般为翻倍
-
-### map
-
-总结来说，Go语言中map的底层逻辑实现是基于哈希表，使用哈希函数将键值对映射到对应的存储桶中，并通过链表处理哈希冲突。在插入和查找操作时，根据哈希值找到存储桶，并在链表中执行相应的操作。当负载因子超过阈值时，会触发扩容操作。这样，map在平均情况下具有O(1)的插入、查找和删除操作的时间复杂度。
-
-make和new
-
-new(T) 会为 T 类型的新值分配已置零的内存空间，并返回地址（指针），即类型为 `*T`的值。换句话说就是，返回一个指针，该指针指向新分配的、类型为 T 的零值。适用于值类型，如数组、结构体等。
-
-make(T,args) 返回初始化之后的 T 类型的值，这个值并不是 T 类型的零值，也不是指针 `*T`，是经过初始化之后的 T 的引用。make() 只适用于 slice、map 和 channel.
-
-#### rwmap
-
-一个map结构，一个rwmutex锁，读写锁，读不受限制，在写入的时候，必须等所有的锁释放
-
-#### syncmap
-
-开箱即用的带锁的map，互斥锁
 
 ## 网络
 
@@ -73,80 +40,39 @@ if err != nil {
 #### post
 
 ```go
-client := http.Client{Timeout: 2 * time.Minute}
-//loginreq := puppy_protocol.LoginReq{Account: "yry", Pwd: "5db603f600bc9e64877f88576c8f900c"}
-//logincontent, err := json.Marshal(loginreq)
-//if err != nil {
-// fmt.Println(err.Error())
-// return
-//}
-////url := "http://a2generic.api.atm.run:1050"
-//url := "http://172.16.16.122:1223"
-//reader := bytes.NewReader(logincontent)
-//resp, err := client.Post(url+"/api/user/login", "application/json", reader)
-//if err != nil {
-// fmt.Println(err.Error())
-//}
-//body, err := ioutil.ReadAll(resp.Body)
-//if err != nil {
-// fmt.Println("读取响应失败：", err)
-// return
-//}
-//// 打印响应内容
-//fmt.Println(string(body))
-//reader1 := bytes.NewReader(body)
+
+lossdataReq := &puppy_protocol.ReqCheckLoss{Time: timeRange, Servers: server, Channels: channel}
+lossdataContent, err := json.Marshal(lossdataReq)
+if err != nil {
+ fmt.Println(err)
+}
+reader = bytes.NewReader(lossdataContent)
+req, err := http.NewRequest("POST", url+"/api/analysis/lvlost", reader)
+if err != nil {
+ fmt.Println(err)
+ return
+}
+req.Header.Set("Authorization", token)
+resp, err = client.Do(req)
+if err != nil {
+ fmt.Println(err.Error())
+}
+body, err = ioutil.ReadAll(resp.Body)
+if err != nil {
+ fmt.Println("读取响应失败：", err)
+ return
+}
+// 打印响应内容
+fmt.Println(string(body))
+reader1 = bytes.NewReader(body)
 //// 使用 reader 进行后续操作
 //// 例如：解析为结构体
-//var loginResp puppy_protocol.RespGeneral
-//err = json.NewDecoder(reader1).Decode(&loginResp)
-//if err != nil {
-// fmt.Println(err.Error())
-// return
-//}
-//
-//data := loginResp.Data.(map[string]interface{})
-//token := data["token"].(string)
-//fmt.Println(token)
-//timeRange := [2]int64{1694016000, 1694016000 + 86400}
-//server := []int32{1005}
-//channel := make([]string, 0)
-//lossdataReq := &puppy_protocol.ReqCheckLoss{Time: timeRange, Servers: server, Channels: channel}
-//lossdataContent, err := json.Marshal(lossdataReq)
-//if err != nil {
-// fmt.Println(err)
-//}
-//reader = bytes.NewReader(lossdataContent)
-//req, err := http.NewRequest("POST", url+"/api/analysis/lvlost", reader)
-//if err != nil {
-// fmt.Println(err)
-// return
-//}
-//req.Header.Set("Authorization", token)
-//resp, err = client.Do(req)
-//if err != nil {
-// fmt.Println(err.Error())
-//}
-//body, err = ioutil.ReadAll(resp.Body)
-//if err != nil {
-// fmt.Println("读取响应失败：", err)
-// return
-//}
-//// 打印响应内容
-//fmt.Println(string(body))
-//reader1 = bytes.NewReader(body)
-//// 使用 reader 进行后续操作
-//// 例如：解析为结构体
-//var lossdataResp puppy_protocol.RespGeneral
-//err = json.NewDecoder(reader1).Decode(&lossdataResp)
-//if err != nil {
-// fmt.Println(err.Error())
-// return
-//}
-//
-//data = lossdataResp.Data.(map[string]interface{})
-//losslist := data["days"].(map[string]interface{})
-//fmt.Println(losslist)
-//return
+var lossdataResp puppy_protocol.RespGeneral
+err = json.NewDecoder(reader1).Decode(&lossdataResp)
+if err != nil {
+ fmt.Println(err.Error())
+ return
+}
 ```
 
 #### session
@@ -168,6 +94,22 @@ r 读取权限  w写入权限  x执行权限
 中间三位，所属组
 
 后三位，其他人
+
+
+
+```
+grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' /var/log/apache/access.log | sort | uniq -c | sort -nr
+```
+
+## 正则
+
+常用正则
+
+
+
+
+
+### 指令
 
 ## 设计模式
 
@@ -263,6 +205,8 @@ having 可以使用聚合函数作为筛选条件
 limit对group无效？
 
 第n高，窗口函数
+
+like  %test%
 
 .sql.gz
 
@@ -467,6 +411,60 @@ dfs(当前条件，目标条件){
 |   运算符 或 
 
 进制转换
+
+defer 的执行顺序是后进先出
+
+短变量只能在函数内部使用
+
+### 数据结构
+
+#### 数组
+
+
+数组是值类型，想要改变数组的值，要传指针
+
+长度是类型的组成部分
+
+#### 切片slice
+
+切片在make出来的时候会有底层数组，创建切片的时候会动态分配底层数组的长度，对切片进行追加的时候，超过的切片的容量cap，也会进行底层数组重新分配，策略一般为翻倍
+
+#### map
+
+总结来说，Go语言中map的底层逻辑实现是基于哈希表，使用哈希函数将键值对映射到对应的存储桶中，并通过链表处理哈希冲突。在插入和查找操作时，根据哈希值找到存储桶，并在链表中执行相应的操作。当负载因子超过阈值时，会触发扩容操作。这样，map在平均情况下具有O(1)的插入、查找和删除操作的时间复杂度。
+
+make和new
+
+new(T) 会为 T 类型的新值分配已置零的内存空间，并返回地址（指针），即类型为 `*T`的值。换句话说就是，返回一个指针，该指针指向新分配的、类型为 T 的零值。适用于值类型，如数组、结构体等。
+
+make(T,args) 返回初始化之后的 T 类型的值，这个值并不是 T 类型的零值，也不是指针 `*T`，是经过初始化之后的 T 的引用。make() 只适用于 slice、map 和 channel.
+
+#### rwmap
+
+一个map结构，一个rwmutex锁，读写锁，读不受限制，在写入的时候，必须等所有的锁释放
+
+#### syncmap
+
+开箱即用的带锁的map，互斥锁
+
+### 文件
+
+```go
+写入，忽略特殊字符
+var data []byte
+buf := bytes.NewBuffer(data)
+encoder := json.NewEncoder(buf)
+encoder.SetEscapeHTML(false)	encoder.SetIndent("", "  ")
+err = encoder.Encode(workdata)
+fmt.Println(buf.String())
+File, err := os.OpenFile(fileName, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0777)
+File.WriteString(buf.String())
+File.Close()
+```
+
+### 并发
+
+
 
 ### 函数上锁
 
