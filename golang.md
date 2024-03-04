@@ -515,6 +515,50 @@ File.Close()
 
 #### gmp
 
+单进程时代，都是串行运行
+
+多进程/多线程，大部分时间用在调度，分配资源太多，创建、切换、销毁进程
+
+原线程为内核级线程
+
+协程引进，用户级线程
+
+线程缺点：高内存占用、高消耗cpu资源
+
+协程有点：占用内存更小（几 kb），调度更灵活 (runtime 调度)
+
+
+
+协程是主动让出，线程抢占
+
+n：1
+
+某个程序用不了硬件的多核加速能力
+
+一旦某协程阻塞，造成线程阻塞，本进程的其他协程都无法执行了，根本就没有并发的能力
+
+1：1
+
+协程的创建、删除和切换的代价都由 CPU 完成，有点略显昂贵了
+
+m：n
+
+m协程对n线程
+
+g协程，m线程，p处理器
+
+Processor，它包含了运行 goroutine 的资源，如果线程想运行 goroutine，必须先获取 P，P 中还包含了可运行的 G 队列
+
+全局队列
+
+p的本地队列
+
+m所持有的p，从p中获取g，如果p中的g为空，则尝试从全局队列中拿一批g，或尝试从其他队列偷一批g放进本线程持有的p
+
+
+
+
+
 ### 函数上锁
 
 ```go
@@ -558,7 +602,7 @@ python，java，go自动
 t1 := time.Now().UnixNano()
 //首行
 var titles string
-titles = "等级, 0907, 0908, 留存百分比\n"
+titles = "dsadada\n"
 
 var stringBuilder strings.Builder
 stringBuilder.WriteString(titles)
