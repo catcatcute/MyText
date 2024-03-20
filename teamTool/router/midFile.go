@@ -1,4 +1,4 @@
-package route
+package router
 
 import (
 	"github.com/gin-gonic/gin"
@@ -21,10 +21,17 @@ func Cors() gin.HandlerFunc {
 		// 5. [可选]是否允许后续请求携带认证信息Cookir，该值只能是true，不需要则不设置
 		context.Header("Access-Control-Allow-Credentials", "true")
 		// 6. 放行所有OPTIONS方法
+		//允许类型校验
 		if method == "OPTIONS" {
-			context.AbortWithStatus(http.StatusNoContent)
-			return
+			context.JSON(http.StatusOK, "ok!")
 		}
+
+		defer func() {
+			if err := recover(); err != nil {
+
+			}
+		}()
+
 		context.Next()
 	}
 }
